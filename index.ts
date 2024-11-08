@@ -7,15 +7,6 @@ interface Router {
   service: String;
 }
 
-interface Service {
-  loadBalancer: {
-    servers: Array<1>;
-  };
-  name: String;
-  provider: 'internal' | 'docker';
-  type: 'loadbalancer';
-}
-
 serve({
   port: process.env.PORT || 3000,
   async fetch(req) {
