@@ -19,73 +19,72 @@ interface Service {
 serve({
   port: process.env.PORT || 3000,
   async fetch(req) {
-    // Extract sessionID from the current URL path
+    // Extract path from the current URL path
     const url = new URL(req.url);
+    const traefikInstances = url.pathname.split('/');
+    traefikInstances.shift();
 
-    const fqdn = url.pathname.split('/')[1];
-    if (!fqdn)
-      return new Response(
-        `No Traefik FQDN provided! Example: "${`${url}`.replace(
-          'http:',
-          'https:'
-        )}traefik.somehostname.example.com"`,
-        { status: 400 }
+    if (!traefikInstances.length || traefikInstances[0] === '') {
+      const message = `No Traefik FQDN provided! Example: "${url}traefik.server1.example.com/traefik.server2.example.com"`;
+      const status = 400;
+      console.error(message, status);
+      return new Response(message, { status });
+    }
+
+    const routers = {};
+    const services = {};
+
+    for await (const traefikEndpoint of traefikInstances) {
+      // send API request to traefik to get router and service details
+      const responseRouters = await fetch(
+        `${process.env.HTTPS === 'true' ? 'https' : 'http'}://${traefikEndpoint}/api/http/routers`
       );
 
-    // send API request to traefik to get router and service details
-    const traefikEndpoint = `${process.env.APIPREFIX}.${fqdn}`;
-    let responseServices;
-    let responseRouters;
-    try {
-      const protocol = process.env.HTTPS === 'true'  ? 'https' : 'http'
-      responseServices = await fetch(`${protocol}://${traefikEndpoint}/api/http/services`);
-      responseRouters = await fetch(`${protocol}://${traefikEndpoint}/api/http/routers`);
-    } catch (error) {
-      return new Response(`Unable to access Traefik API server, is it reachable?\n\n${error}`, { status: 500 });
-    }
-    
-    const routersRaw = await responseRouters.json();
-    const servicesRaw = await responseServices.json();
-
-    const joinName = (input: String) => `${input.split('@')[0]}_${fqdn.replaceAll('.', '_')}`.replaceAll('-', '_');
-    
-    // compile data for the main traefik to understand
-    const routers = {};    
-    routersRaw.filter((router: Router) => router.provider === 'docker')
-      .forEach((router: Router) => {
-        const routerName = joinName(router.name);
-        const serviceName = joinName(router.service);
-        routers[routerName] = {
-          service: serviceName,
-          rule: router.rule
-        }
-      });
-
-    const services = {};
-    servicesRaw.filter((service: Service) => service.provider === 'docker' && service.type === 'loadbalancer')
-    .forEach((service: Service) => {
-      const serviceName = joinName(service.name);
-      services[serviceName] = {
-        loadBalancer: {
-          servers: [
-            { url: `http://${traefikEndpoint}:80` }
-          ]
-        },
+      if (!responseRouters.ok) {
+        const message = `Unable to access Traefik API server, is it reachable?\n${
+          responseRouters ? `${responseRouters.statusText} - ` : ''
+        }${traefikEndpoint}`;
+        const status = responseRouters ? responseRouters.status : 500;
+        console.error(message, status);
+        return new Response(message, { status });
       }
-    });
+
+      const routersRaw = await responseRouters.json();
+
+      const joinName = (input: String) =>
+        `${input.split('@')[0]}_${traefikEndpoint.replaceAll('.', '_')}`.replaceAll('-', '_');
+
+      // compile data for the routing traefik to understand
+      // routers
+      routersRaw
+        .filter((router: Router) => router.provider === 'docker')
+        .forEach((router: Router) => {
+          const routerName = joinName(router.name);
+          routers[routerName] = {
+            service: traefikEndpoint,
+            rule: `${router.rule} && PathPrefix(\`/.well-known/acme-challenge/\`)`,
+          };
+        });
+
+      // service
+      services[traefikEndpoint] = {
+        loadBalancer: {
+          servers: [{ url: `http://${traefikEndpoint}:80` }],
+        },
+      };
+    }
 
     const finalConfig = {
       http: {
         services,
-        routers
-      }
-    }
-
+        routers,
+      },
+    };
 
     // send response
     return new Response(JSON.stringify(finalConfig), {
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
     });
   },
