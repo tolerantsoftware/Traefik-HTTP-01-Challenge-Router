@@ -12,6 +12,7 @@
     "name": "Phil",
     "url": "https://github.com/phil-flip"
   },
+  "license": "MIT",
   "peerDependencies": {
     "typescript": "^5.0.0"
   }
