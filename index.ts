@@ -57,8 +57,7 @@ serve({
         const serviceName = joinName(router.service);
         routers[routerName] = {
           service: serviceName,
-          rule: router.rule,
-          entryPoints: [ 'web' ]
+          rule: router.rule
         }
       });
 
@@ -76,7 +75,7 @@ serve({
     });
 
     const finalConfig = {
-      tcp: {
+      http: {
         services,
         routers
       }
