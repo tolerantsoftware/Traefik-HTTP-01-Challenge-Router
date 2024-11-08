@@ -24,14 +24,18 @@ flowchart TB
     traefik-routerMiddleware -->|443<br>API GET Req| traefik-app & server-1
 ```
 
+## Dev setup
+
+> This Project uses [bun](https://bun.sh/).
+
+1. To install dependencies:
+
 ```bash
 bun install
 ```
 
-To run:
+2. To run:
 
 ```bash
-bun run index.ts
+bun start
 ```
-
-This project was created using `bun init` in bun v1.1.29. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
