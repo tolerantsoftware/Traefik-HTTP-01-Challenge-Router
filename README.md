@@ -13,6 +13,7 @@ A tool to manage routes of incoming, Let's Encrypt HTTP-01 Challenge requests fo
     - [Prerequisites](#prerequisites)
     - [Default setup](#default-setup)
     - [Additional setup](#additional-setup)
+      - [Run apps on same server](#run-apps-on-same-server)
       - [Additional non-Traefik](#additional-non-traefik)
   - [Troubleshooting](#troubleshooting)
   - [How it works](#how-it-works)
@@ -46,6 +47,10 @@ A tool to manage routes of incoming, Let's Encrypt HTTP-01 Challenge requests fo
 --> Check the Traefik dashboard, if the routes have been applied. `http://adressOfRoutingTraefik:8080/`
 
 ### Additional setup
+
+#### Run apps on same server
+
+It is recommended to use a separate Traefik instance for the docker provider. This is due to Traefik not correctly routing http-01 challenge requests, because it prioritizes its own rule, over the one that is provided by the middleware.
 
 #### Additional non-Traefik
 
