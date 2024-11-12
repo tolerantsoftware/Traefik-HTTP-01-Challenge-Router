@@ -1,0 +1,18 @@
+%%{ init: { 'flowchart': { 'curve': 'linear', 'defaultRenderer': 'elk' } } }%%
+flowchart TB
+    LE((Let's Encrypt))
+    fw[[Firewall]]
+    client((End User))
+    subgraph Routing Server
+        traefik-routerMiddleware[/"Router Middleware<br>(this project)"/]
+        traefik-router[/"Traefik - Routing Instance<br>(Routes HTTP-01 Challenge)"/]
+        %% traefik-app[/"Traefik - Main Instance<br>(For Apps on routing Server - Optional)"/]
+    end
+    server-1["Server foo with Traefik"]
+    server-2["Server bar with Traefik"]
+
+    LE -->|80<br>HTTP-01 Challenge| fw -->|81<br>HTTP-01 Challenge| traefik-router
+    client -.->|80+443<br>App access| server-1 & server-2
+    traefik-router -->|80<br>HTTP-01 Challenge| server-1 & server-2
+    traefik-router <-->|3000<br>Dynamic Conf| traefik-routerMiddleware
+    traefik-routerMiddleware -->|443<br>API GET Req| server-1 & server-2
