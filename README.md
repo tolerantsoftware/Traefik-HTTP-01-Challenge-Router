@@ -133,4 +133,5 @@ bun start
 
 ## ToDo
 
-- [ ] Add automatic Docker Image generation.
+- [ ] Add Docker Image generation.
+- [ ] Fix Race condition on first usage: The 5 seconds is too long, by the time LE already tried to reach the Traefik
