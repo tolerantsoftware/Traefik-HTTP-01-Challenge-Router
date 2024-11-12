@@ -21,7 +21,7 @@ services:
 
       # - "--providers.file.directory=/extra_routing"
       # - "--providers.file.watch=true"
-      - "--providers.http.endpoint=http://router_middleware:3000/traefik.server1.example.com/traefik.batta.intern.tolerant-software.de/traefik.server2.example.com"
+      - "--providers.http.endpoint=http://router_middleware:3000/traefik.server1.example.com/traefik.server2.example.com"
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]
       interval: 10s
