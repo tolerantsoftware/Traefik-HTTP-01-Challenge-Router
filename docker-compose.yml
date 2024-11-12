@@ -1,0 +1,35 @@
+services:
+  router_middleware:
+    build:
+      context: .
+    restart: always
+    environment:
+      PORT: 3000
+      HTTPS: true
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
+
+  router:
+    image: traefik:v3.1.2
+    restart: always
+    depends_on:
+      - router_middleware
+    command:
+#      - "--log.level=DEBUG"
+      - "--api.insecure=true"
+      - "--ping=true"
+      - "--entrypoints.web.address=:81"
+
+      # - "--providers.file.directory=/extra_routing"
+      # - "--providers.file.watch=true"
+      - "--providers.http.endpoint=http://router_middleware:3000/traefik.server1.example.com/traefik.batta.intern.tolerant-software.de/traefik.server2.example.com"
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    # volumes:
+    #   - "$PWD/extra_routing:/extra_routing"
+    ports:
+      - "81:81"
+      - "8080:8080"
