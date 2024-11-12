@@ -35,14 +35,15 @@ A tool to manage routes of incoming, Let's Encrypt HTTP-01 Challenge requests fo
 
 ### Default setup
 
-2. Clone the repo: `git clone https://github.com/tolerantsoftware/Traefik-HTTP-01-Challenge-Router`
-3. Check, if the [Traefik Version](https://hub.docker.com/_/Traefik/tags) is up to date in `docker-compose.yml`
-4. Adjust the Configuration:
-   1. env vars:
+1. Clone the repo: `git clone https://github.com/tolerantsoftware/Traefik-HTTP-01-Challenge-Router`
+2. Adjust the Configuration in `docker-compose.yml`:
+   1. Check, if the [Traefik Version](https://hub.docker.com/_/Traefik/tags) is up to date
+   2. env vars:
       1. `HTTPS`: Tells the tool, if the the API endpoints are using http or https. If it is https, make sure that `NODE_TLS_REJECT_UNAUTHORIZED` os `0`, as the API Endpoints doesn't have a valid cert at that time.
-   2. Traefik
+   3. Traefik
       1. `entrypoints.web.address` is by default `81` so the same Docker instance can also act as an application server. Feel free to change it, and the port in the `ports` section.
-5. Use `docker compose up -d` to deploy it.
+      2. Change the FQDN hostnames in `--providers.http.endpoint` so the middleware knows which servers to grab the configuration from. (IP-Addresses are untested and unsure if that would work with the LE validation.)
+3. Use `docker compose up -d` to deploy it.
 
 --> Check the Traefik dashboard, if the routes have been applied. `http://adressOfRoutingTraefik:8080/`
 
